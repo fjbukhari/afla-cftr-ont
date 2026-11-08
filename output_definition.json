@@ -1,0 +1,36 @@
+{
+  "files": {
+    "report": {
+      "filepath": "{{ alias }}/{{ alias }}.cftr.html",
+      "title": "CFTR report",
+      "description": "One-page report: variants with CFTR2 and ClinVar classes, poly-T/TG, exon copy number, coverage gaps.",
+      "mime-type": "text/html",
+      "optional": true,
+      "type": "per-sample"
+    },
+    "alignment": {
+      "filepath": "{{ alias }}/alignment/{{ alias }}.bam",
+      "title": "Aligned reads",
+      "description": "Sorted BAM with index.",
+      "mime-type": "application/octet-stream",
+      "optional": true,
+      "type": "per-sample"
+    },
+    "variants": {
+      "filepath": "{{ alias }}/variants/{{ alias }}.annotated.vcf.gz",
+      "title": "Annotated variants",
+      "description": "Variant calls annotated by Ensembl VEP.",
+      "mime-type": "application/gzip",
+      "optional": true,
+      "type": "per-sample"
+    },
+    "cnv": {
+      "filepath": "cftr/cftr_cnv.tsv",
+      "title": "Exon copy number table",
+      "description": "Depth ratio of every exon in every sample.",
+      "mime-type": "text/tab-separated-values",
+      "optional": true,
+      "type": "aggregated"
+    }
+  }
+}

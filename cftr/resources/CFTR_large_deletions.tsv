@@ -1,0 +1,7 @@
+# Known CFTR multi-exon deletions (GRCh38, NM_000492.4) that the copy-number step names when its call overlaps
+# them. Source: the ACMG 2023 CFTR variant table (supplementary table S1) and CFTR2. Exons in current numbering.
+cdna	legacy	exons
+c.54-5940_273+10250del	CFTRdele2,3	2-3
+c.54-5842_489+401del	CFTRdele2-4	2-4
+c.2989-977_3367+248del	3121-977_3499+248del2515	19-20
+c.3964-78_4242+577del	CFTRdele22,23	25-26

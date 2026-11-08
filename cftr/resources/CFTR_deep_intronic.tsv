@@ -1,0 +1,9 @@
+# CFTR variants outside exon +/-25 bases that the CFTR targets must also cover (GRCh38, NM_000492.4).
+# Edit freely: one c. name per line; the targets command adds +/-25 bases around each. Source: the ACMG 2023
+# CFTR variant table (Deignan et al., Genet Med 2023, supplementary table S1) and CFTR2.
+cdna	legacy	note
+c.1680-886A>G	1811+1634A>G	deep intronic, creates a pseudo-exon (ACMG minimum set)
+c.1680-877G>T	1811+1643G>T	deep intronic
+c.3140-26A>G	3272-26A>G	creates a new splice acceptor (ACMG minimum set)
+c.3717+40A>G	3849+40A>G	intronic
+c.3718-2477C>T	3849+10kbC>T	deep intronic, pseudo-exon (ACMG minimum set)

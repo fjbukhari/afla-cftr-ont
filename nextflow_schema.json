@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "type": "object",
+  "properties": {
+    "out_dir": {
+      "type": "string",
+      "format": "directory-path",
+      "default": "output",
+      "hidden": true
+    }
+  },
+  "$id": "afla-cftr-ont/nextflow_schema.json",
+  "title": "afla-cftr-ont",
+  "workflow_title": "AFLA CFTR Nanopore",
+  "description": "CFTR analysis of targeted Nanopore data: read alignment, small variants with read-based phasing, poly-T/TG, exon deletions and duplications, optional Ensembl VEP and ClinVar annotation, and a one-page report per sample with CFTR2 classes. Education and research use only, not for clinical use.",
+  "url": "",
+  "resources": {
+    "recommended": {
+      "cpus": 12,
+      "memory": "32GB"
+    },
+    "minimum": {
+      "cpus": 4,
+      "memory": "16GB"
+    },
+    "run_time": "A CFTR panel run: about 10-30 minutes.",
+    "arm_support": false
+  },
+  "definitions": {
+    "input": {
+      "title": "Input",
+      "type": "object",
+      "fa_icon": "fas fa-arrow-right",
+      "description": "Reads for all samples of the run.",
+      "properties": {
+        "fastq": {
+          "title": "FASTQ folder",
+          "type": "string",
+          "format": "directory-path",
+          "description": "Folder of basecalled reads: one sub-folder per sample (MinKNOW barcode folders, or AFLA Demux output), or one <sample>.fastq.gz per sample. Unclassified reads are ignored.",
+          "help_text": "Include at least 4 samples from the run: exon deletions and duplications are found by comparing samples with each other."
+        }
+      },
+      "required": [
+        "fastq"
+      ]
+    },
+    "reference": {
+      "title": "Reference and target regions",
+      "type": "object",
+      "fa_icon": "fas fa-dna",
+      "required": [
+        "ref"
+      ],
+      "properties": {
+        "ref": {
+          "title": "Reference genome (FASTA)",
+          "type": "string",
+          "format": "file-path",
+          "description": "GRCh38 reference FASTA with chr names (chr7).",
+          "help_text": "bwa index files (.amb .ann .bwt .pac .sa) should sit next to it. The .fai and .dict files are made automatically if missing."
+        },
+        "bed": {
+          "title": "Target regions (optional)",
+          "type": "string",
+          "format": "file-path",
+          "description": "BED file of the regions your panel targets. Variants are called there. If empty, all CFTR exons +/-25 bases and selected deep intronic sites are used. Coverage is always judged against that CFTR list."
+        },
+        "cftr2_list": {
+          "title": "CFTR2 variant list",
+          "type": "string",
+          "format": "file-path",
+          "description": "CFTR2 variant list (.xlsx, downloaded from cftr2.org after accepting its usage agreement). Used to classify variants; without it the report says so."
+        }
+      }
+    },
+    "calling": {
+      "title": "Variant calling",
+      "type": "object",
+      "fa_icon": "fas fa-dna",
+      "properties": {
+        "ont_caller": {
+          "title": "Variant caller",
+          "type": "string",
+          "default": "bcftools",
+          "enum": [
+            "bcftools",
+            "clair3"
+          ],
+          "description": "Use bcftools. Clair3 is experimental: in testing on a real amplicon sample it missed F508del, although almost half of the reads carried it."
+        },
+        "bcftools_profile": {
+          "title": "bcftools Nanopore profile",
+          "type": "string",
+          "default": "ont-sup-1.20",
+          "enum": [
+            "ont-sup-1.20",
+            "ont"
+          ],
+          "description": "ont-sup-1.20 for recent super-accuracy basecalling; ont for older or faster basecalling."
+        },
+        "clair3_model": {
+          "title": "Clair3 model",
+          "type": "string",
+          "default": "r1041_e82_400bps_sup_v500",
+          "enum": [
+            "r1041_e82_400bps_sup_v500",
+            "r1041_e82_400bps_sup_v410"
+          ],
+          "description": "Used only with the Clair3 caller. The two R10.4.1 models in this Clair3 image, for super-accuracy basecalling: v500 for recent basecallers, v410 for older ones."
+        },
+        "run_phasing": {
+          "title": "Phase variants (WhatsHap)",
+          "type": "boolean",
+          "default": false,
+          "description": "Uses reads to place heterozygous variants on the same or opposite chromosomes, where the same reads join them."
+        }
+      }
+    },
+    "annotation": {
+      "title": "Annotation sources",
+      "type": "object",
+      "fa_icon": "fas fa-book-medical",
+      "description": "Local files, so annotation works offline. Leave optional sources empty to skip them.",
+      "properties": {
+        "run_annotation": {
+          "title": "5. Annotate variants (Ensembl VEP)",
+          "type": "boolean",
+          "default": true,
+          "description": "Adds gene, consequence, HGVS, gnomAD frequency, ClinVar, REVEL and AlphaMissense (sources set below)."
+        },
+        "vep_cache": {
+          "title": "VEP cache folder",
+          "type": "string",
+          "format": "directory-path",
+          "description": "Folder that contains homo_sapiens/<version>_GRCh38 (the offline Ensembl cache; includes gnomAD v4.1 frequencies)."
+        },
+        "vep_cache_version": {
+          "title": "VEP cache version",
+          "type": "integer",
+          "default": 115,
+          "description": "Must match the cache folder and the VEP container (115)."
+        },
+        "clinvar_vcf": {
+          "title": "ClinVar VCF (optional)",
+          "type": "string",
+          "format": "file-path",
+          "description": "clinvar_GRCh38.vcf.gz with its .tbi index (monthly releases from NCBI). Choose the data file itself (if you pick its .fai/.tbi index by mistake, the workflow uses the file next to it)."
+        }
+      }
+    },
+    "report": {
+      "title": "Report",
+      "type": "object",
+      "fa_icon": "fas fa-file-medical",
+      "properties": {
+        "report_min_depth": {
+          "title": "Minimum depth",
+          "type": "integer",
+          "default": 20,
+          "enum": [
+            20,
+            50,
+            100
+          ],
+          "description": "A target with bases below this depth is flagged in red as a gap in the report."
+        }
+      }
+    },
+    "output": {
+      "title": "Output and resources",
+      "type": "object",
+      "fa_icon": "fas fa-folder-open",
+      "properties": {
+        "threads": {
+          "title": "CPU threads",
+          "type": "integer",
+          "default": 12,
+          "minimum": 1,
+          "description": "Maximum CPU threads for the heavy steps (alignment, calling, annotation)."
+        }
+      }
+    },
+    "misc": {
+      "title": "Miscellaneous",
+      "type": "object",
+      "properties": {
+        "disable_ping": {
+          "type": "boolean",
+          "default": true,
+          "hidden": true,
+          "description": "Not used."
+        },
+        "help": {
+          "type": "boolean",
+          "default": false,
+          "hidden": true,
+          "description": "Not used."
+        },
+        "version": {
+          "type": "boolean",
+          "default": false,
+          "hidden": true,
+          "description": "Not used."
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/definitions/input"
+    },
+    {
+      "$ref": "#/definitions/reference"
+    },
+    {
+      "$ref": "#/definitions/calling"
+    },
+    {
+      "$ref": "#/definitions/annotation"
+    },
+    {
+      "$ref": "#/definitions/report"
+    },
+    {
+      "$ref": "#/definitions/output"
+    },
+    {
+      "$ref": "#/definitions/misc"
+    }
+  ]
+}
